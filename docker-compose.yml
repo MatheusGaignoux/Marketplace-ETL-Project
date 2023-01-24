@@ -1,0 +1,165 @@
+version: "3"
+
+services:
+  jupyterlab-spark:
+    build:
+      dockerfile: ./docker/jupyterlab.dockerfile
+      context: .
+    container_name: jupyterlab-spark
+    volumes:
+      - ./mnt:/mnt
+      - ./workspace:/workspace
+      - ./jars:/jars
+    ports:
+      - 8888:8888
+    networks:
+      - b2b-platform-network
+
+  spark-master:
+    build:
+      dockerfile: ./docker/spark.dockerfile
+      context: .
+    container_name: spark-master
+    ports:
+      - 8090:8080
+      - 7077:7077
+    volumes:
+      - ./mnt:/mnt
+      - ./jars:/jars
+    networks:
+      - b2b-platform-network
+
+  spark-worker_1:
+    build:
+      dockerfile: ./docker/spark.dockerfile
+      context: .
+    container_name: spark-worker_1
+    environment:
+      - SPARK_WORKER_CORES=4
+      - SPARK_WORKER_MEMORY=4096m
+    ports:
+      - 8091:8081
+    volumes:
+      - ./mnt:/mnt
+      - ./jars:/jars
+    depends_on:
+      - spark-master
+    networks:
+      - b2b-platform-network
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    restart: 
+        on-failure
+  
+  postgres-b2b:
+    image: postgres:14
+    container_name: postgres-b2b
+    environment:
+        - POSTGRES_USER=docker
+        - POSTGRES_PASSWORD=docker
+        - POSTGRES_DB=b2b-platform
+    volumes:
+        - ./postgres-b2b/data:/var/lib/postgresql/data
+        - ./data/database-dump:/project/data
+        - ./postgres-b2b/scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - b2b-platform-network
+
+  postgres-airflow:
+    image: postgres:14
+    container_name: postgres-airflow
+    environment:
+        - POSTGRES_USER=docker
+        - POSTGRES_PASSWORD=docker
+        - POSTGRES_DB=airflow
+    volumes:
+        - ./postgres-airflow/data:/var/lib/postgresql/data
+    ports:
+      - "15432:5432"
+    networks:
+      - b2b-platform-network
+
+  postgres-datamart:
+    image: postgres:14
+    container_name: postgres-datamart
+    environment:
+        - POSTGRES_USER=docker
+        - POSTGRES_PASSWORD=docker
+        - POSTGRES_DB=datamart
+    volumes:
+        - ./postgres-datamart/data:/var/lib/postgresql/data
+    ports:
+      - "25432:5432"
+    networks:
+      - b2b-platform-network
+
+  airflow-init:
+    build:
+      dockerfile: ./docker/airflow.dockerfile
+      context: .
+    container_name: airflow-init
+    volumes:
+        - ./airflow/dags:/airflow/dags
+        - ./workspace:/workspace
+        - ./mnt:/mnt
+        - ./jars:/jars
+    networks:
+        - b2b-platform-network
+    depends_on:
+        - postgres-airflow
+      
+  airflow-webserver:
+    build:
+      dockerfile: ./docker/airflow.dockerfile
+      context: .
+    container_name: airflow-webserver
+    volumes:
+        - ./airflow/dags:/airflow/dags
+        - ./workspace:/workspace
+        - ./mnt:/mnt
+        - ./jars:/jars
+    ports:
+        - 8080:8080
+    networks:
+        - b2b-platform-network
+    command: airflow webserver
+    depends_on:
+        - airflow-init
+    restart: 
+        on-failure
+      
+  airflow-scheduler:
+    build:
+      dockerfile: ./docker/airflow.dockerfile
+      context: .
+    container_name: airflow-scheduler
+    volumes:
+        - ./airflow/dags:/airflow/dags
+        - ./workspace:/workspace
+        - ./mnt:/mnt
+        - ./jars:/jars
+    networks:
+        - b2b-platform-network
+    command: airflow scheduler
+    depends_on:
+        - airflow-webserver
+    restart: 
+        on-failure
+    
+  sshserver:
+    build:
+      dockerfile: ./docker/sshserver.dockerfile
+      context: .
+    container_name: sshserver
+    volumes:
+      - ./workspace/data-generation:/workspace/data-generation
+      - ./data/weblogs/:/b2b-platform/data/logs/
+    networks:
+      - b2b-platform-network
+    depends_on:
+      - postgres-b2b
+
+networks:
+  b2b-platform-network:
+    driver: bridge

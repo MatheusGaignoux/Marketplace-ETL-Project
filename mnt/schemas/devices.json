@@ -1,0 +1,29 @@
+{
+    "type": "struct",
+    "fields": [
+        {
+            "name": "Username",
+            "type": "string",
+            "nullable": true,
+            "metadata": {}
+        },
+        {
+            "name": "VisitedAt",
+            "type": "timestamp",
+            "nullable": true,
+            "metadata": {}
+        },
+        {
+            "name": "OrderId",
+            "type": "integer",
+            "nullable": true,
+            "metadata": {}
+        },
+        {
+            "name": "Device",
+            "type": "string",
+            "nullable": true,
+            "metadata": {}
+        }
+    ]
+}

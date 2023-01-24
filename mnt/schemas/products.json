@@ -1,0 +1,35 @@
+{
+    "type": "struct",
+    "fields": [
+        {
+            "name": "HostIp",
+            "type": "string",
+            "nullable": true,
+            "metadata": {}
+        },
+        {
+            "name": "Country",
+            "type": "string",
+            "nullable": true,
+            "metadata": {}
+        },
+        {
+            "name": "VisitedAt",
+            "type": "timestamp",
+            "nullable": true,
+            "metadata": {}
+        },
+        {
+            "name": "ProductId",
+            "type": "integer",
+            "nullable": true,
+            "metadata": {}
+        },
+        {
+            "name": "ProductName",
+            "type": "string",
+            "nullable": true,
+            "metadata": {}
+        }
+    ]
+}

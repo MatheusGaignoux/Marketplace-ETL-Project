@@ -1,0 +1,41 @@
+{
+    "type": "struct",
+    "fields": [
+        {
+            "name": "orderItemId",
+            "type": "integer",
+            "nullable": true,
+            "metadata": {}
+        },
+        {
+            "name": "orderId",
+            "type": "integer",
+            "nullable": true,
+            "metadata": {}
+        },
+        {
+            "name": "price",
+            "type": "double",
+            "nullable": true,
+            "metadata": {}
+        },
+        {
+            "name": "orderDate",
+            "type": "timestamp",
+            "nullable": true,
+            "metadata": {}
+        },
+        {
+            "name": "year_partition",
+            "type": "string",
+            "nullable": true,
+            "metadata": {}
+        },
+        {
+            "name": "month_partition",
+            "type": "string",
+            "nullable": true,
+            "metadata": {}
+        }
+    ]
+}
